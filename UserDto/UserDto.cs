@@ -12,4 +12,3 @@
         public string EmployeeConfirmPassword { get; set; } = string.Empty;
     }
 }
-char 

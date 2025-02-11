@@ -1,5 +1,6 @@
 ﻿using AuthenticationApp.Models;
 using AuthenticationApp.UserDTO;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,15 +18,22 @@ namespace AuthenticationApp.Controllers
         //Static user, just to test out the API
         //Seeing if we need the Dto
         public static User user = new (); //testing only 
+
         [HttpPost("Register")]
         public ActionResult<User> Register(UserDto request)
         {
             var hashedPassword = new PasswordHasher<User>()
                 .HashPassword(user, request.EmployeePassword);
-            //mappring the data
+            //mapping the data, will be moved obviously 
+            user.EmployeeName = request.EmployeeName;
+            user.EmployeeLastName = request.EmployeeLastName;
+            user.EmployeeDepartment = request.EmployeeDepartment;
+            user.EmloyeeeJobTitle = request.EmloyeeeJobTitle;
+            user.EmployeePhoneNumber = request.EmployeePhoneNumber;
             user.EmployeeEmail = request.EmployeeEmail;
             user.EmployeeHashedPassword = hashedPassword;
-            user.EmployeeName = request.EmployeeName;
+            
+
             return Ok(user);
         }
         [HttpPost("Login")]
@@ -49,6 +57,7 @@ namespace AuthenticationApp.Controllers
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, user.EmployeeEmail)
+
              };
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:Token")!));
