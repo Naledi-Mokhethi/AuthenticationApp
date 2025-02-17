@@ -6,6 +6,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 
@@ -50,36 +51,41 @@ namespace AuthenticationApp.Services
             }
           //  return Ok(user);
         }
-        public Task<string> LoginAsync(LoginUserDto request)
+        public async Task<string> LoginAsync(LoginUserDto request)
         {
-            var procedureName = "EmployeeLogin";
+            var loginProcedure = "EmployeeLogin";
+            var passwordProcedureName = "ReturnHashedPassword";
             var parameters = new DynamicParameters();
+            var passordParameters = new DynamicParameters();
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                 parameters.Add("Email", request.EmployeeEmail);
-             
-                return (User?)data; //Might not need to return anything
-
+               
+                //Password Stored Procedure 
+                var hashedPassword = await connection.QueryFirstOrDefaultAsync<LoginUserDto>(passwordProcedureName, parameters, commandType: CommandType.StoredProcedure);
+                if (hashedPassword is null)
+                {
+                    return null!; // intentionall null return, it means that there is no user with that email in the dbo
+                }
+                 
+                if( new PasswordHasher<LoginUserDto>().VerifyHashedPassword(request,hashedPassword.ToString()!, request.EmployeePassword) == PasswordVerificationResult.Failed)
+                {
+                    return null!; //Return Null if the password being passed in does not match the hashed one in the dbo
+                }
+                //If checks pass, we execute the login stored procedure, everything should work here
+                parameters.Add("Email", request.EmployeeEmail);
+                parameters.Add("@Password", hashedPassword.ToString()!);//pass in hashed password since thats whats in the Dbo 
+                var user = await connection.QueryFirstOrDefaultAsync<LoginUserDto>(loginProcedure, parameters, commandType:CommandType.StoredProcedure);
+                connection.Close();
+                return CreateToken(user!);
             }
-            if (user.EmployeeEmail != request.EmployeeEmail)
-            {
-                return BadRequest("User not found");
-            }
-            if (new PasswordHasher<User>().VerifyHashedPassword(user, user.EmployeeHashedPassword, request.EmployeePassword)
-                == PasswordVerificationResult.Failed)
-            {
-                return BadRequest("Wrong passord");
-            }
-            string token = CreateToken(user);
-            return Ok(token);
+    
         }
-        private string CreateToken(User user)
+        private string CreateToken(LoginUserDto user)
         {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, user.EmployeeEmail)
-
              };
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:Token")!));
