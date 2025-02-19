@@ -19,8 +19,8 @@ namespace AuthenticationApp.Controllers
         [HttpPost("Register")]
         public async Task<ActionResult<User>> Register(UserDto request)
         {
-            var user = await authService.RegisterAsync(request);
-            return Ok(user);
+            await authService.RegisterAsync(request);
+            return Ok();
         }
         [HttpPost("Login")]
         public async Task<ActionResult<string>> Login(LoginUserDto request)
@@ -28,7 +28,7 @@ namespace AuthenticationApp.Controllers
             var token = await authService.LoginAsync(request);
             if (token == null)
             {
-                return BadRequest("");
+                return BadRequest("Invalid Username or password");
             }
             return Ok(token);
         }
