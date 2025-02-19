@@ -31,17 +31,20 @@ namespace AuthenticationApp.Services
 
             var procedureName = "EmployeeRegistration";
             var parameters = new DynamicParameters();
-            using(var connection = new SqlConnection( _connectionString))
+            using (var connection = new SqlConnection(_connectionString))
             {
                 parameters.Add("@EmployeeName", request.EmployeeName);
                 parameters.Add("@EmployeeLastName", request.EmployeeLastName);
-                parameters.Add("@EmployeeDepartment",request.EmployeeDepartment);
+                parameters.Add("@EmployeeDepartment", request.EmployeeDepartment);
                 parameters.Add("@EmloyeeeJobTitle", request.EmloyeeeJobTitle);
                 parameters.Add("@EmployeePhoneNumber", request.EmployeePhoneNumber);
                 parameters.Add("@EmployeeEmail", request.EmployeeEmail);
                 parameters.Add("@EmployeeHashedPassword", hashedPassword);
                 var data = await connection.QueryAsync<User>(procedureName, parameters, commandType: CommandType.StoredProcedure);
-                return "Success";           
+                if (data is not null)
+                    return "Success";
+                else
+                    return null;
             }
         }
         public async Task<string> LoginAsync(LoginUserDto request)
@@ -69,8 +72,10 @@ namespace AuthenticationApp.Services
                 parameters.Add("@Email", request.EmployeeEmail);
                 parameters.Add("@Password", hashedPassword.ToString()!);//pass in hashed password since thats whats in the Dbo 
                 var user = await connection.QueryFirstOrDefaultAsync<LoginUserDto>(loginProcedure, parameters, commandType:CommandType.StoredProcedure);
-                connection.Close();
-                return CreateToken(user!);
+                if (user is not null)
+                    return CreateToken(user!);
+                else
+                    return null!;
             }
     
         }

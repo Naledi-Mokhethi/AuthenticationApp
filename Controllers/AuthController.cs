@@ -19,18 +19,19 @@ namespace AuthenticationApp.Controllers
         [HttpPost("Register")]
         public async Task<ActionResult<User>> Register(UserDto request)
         {
-            await authService.RegisterAsync(request);
-            return Ok();
+           if(await authService.RegisterAsync(request) is null)
+                return BadRequest("");
+           else
+                return Ok();
         }
         [HttpPost("Login")]
         public async Task<ActionResult<string>> Login(LoginUserDto request)
         {
             var token = await authService.LoginAsync(request);
             if (token == null)
-            {
                 return BadRequest("Invalid Username or password");
-            }
-            return Ok(token);
+            else
+                return Ok(token);
         }
 
     }
