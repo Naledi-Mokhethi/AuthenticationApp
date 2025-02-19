@@ -9,8 +9,9 @@ builder.Services.AddControllers();
 string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 //Injecting Dependencies
-builder.Services.AddTransient(provider => new AuthService(connectionString!));
-builder.Services.AddScoped<IAuthService, AuthService>();
+//builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddTransient<IAuthService, AuthService>(provider => new AuthService(connectionString!));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
