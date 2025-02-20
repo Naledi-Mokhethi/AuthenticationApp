@@ -76,7 +76,7 @@ namespace AuthenticationApp.Services
                 parameters.Add("@Password", hashedPassword.ToString()!);//pass in hashed password since thats whats in the Dbo 
                 var user = await connection.QueryFirstOrDefaultAsync(loginProcedure, parameters, commandType:CommandType.StoredProcedure);
                 if (user is not null)
-                    return CreateToken(user!);
+                    return CreateToken(request);
                 else
                     return null!;
             }
