@@ -53,25 +53,28 @@ namespace AuthenticationApp.Services
             var passwordProcedureName = "ReturnHashedPassword";
             var parameters = new DynamicParameters();
             var passordParameters = new DynamicParameters();
+
             using (var connection = new SqlConnection(_connectionString))
             {
-                connection.Open();
-               
+                //connection.Open();
+
                 //Password Stored Procedure 
-                var hashedPassword = await connection.QueryFirstOrDefaultAsync<LoginUserDto>(passwordProcedureName, parameters, commandType: CommandType.StoredProcedure);
+                passordParameters.Add("@Email", request.EmployeeEmail);
+                var hashedPassword = await connection.QueryFirstOrDefaultAsync<string>(passwordProcedureName, passordParameters, commandType: CommandType.StoredProcedure);
                 if (hashedPassword is null)
                 {
                     return null!; // intentionall null return, it means that there is no user with that email in the dbo
                 }
-                 
-                if( new PasswordHasher<LoginUserDto>().VerifyHashedPassword(request,hashedPassword.ToString()!, request.EmployeePassword) == PasswordVerificationResult.Failed)
+
+                if (new PasswordHasher<User>().VerifyHashedPassword(new User(), hashedPassword, request.EmployeePassword)
+                   == PasswordVerificationResult.Failed)
                 {
-                    return null!; //Return Null if the password being passed in does not match the hashed one in the dbo
+                    return null!; // Invalid password
                 }
                 //If checks pass, we execute the login stored procedure, everything should work here
-                parameters.Add("@Email", request.EmployeeEmail);
+                parameters.Add("@Email", request.EmployeeEmail);  
                 parameters.Add("@Password", hashedPassword.ToString()!);//pass in hashed password since thats whats in the Dbo 
-                var user = await connection.QueryFirstOrDefaultAsync<LoginUserDto>(loginProcedure, parameters, commandType:CommandType.StoredProcedure);
+                var user = await connection.QueryFirstOrDefaultAsync(loginProcedure, parameters, commandType:CommandType.StoredProcedure);
                 if (user is not null)
                     return CreateToken(user!);
                 else
