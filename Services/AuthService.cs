@@ -15,11 +15,12 @@ namespace AuthenticationApp.Services
     public class AuthService : IAuthService
     {
         private readonly string? _connectionString;
-        private IConfiguration? configuration; //This is for the key config, lets see if it still works when its here
+        private IConfiguration _configuration; //This is for the key config, lets see if it still works when its here
 
-        public AuthService(string? connectionString)
+        public AuthService(string? connectionString, IConfiguration configuration)
         {
             _connectionString = connectionString;
+            _configuration = configuration;
         }
 
         public async Task<string?> RegisterAsync(UserDto request)
@@ -78,7 +79,7 @@ namespace AuthenticationApp.Services
                 if (user is not null)
                     return CreateToken(request);
                 else
-                    return null!;
+                    return null!;  
             }
     
         }
@@ -87,14 +88,14 @@ namespace AuthenticationApp.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, user.EmployeeEmail)
-             };
+            };
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:Token")!));
+                Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:Token")!));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var tokenDescriptor = new JwtSecurityToken(
-                issuer: configuration.GetValue<string>("AppSettings:Issuer"),
-                audience: configuration.GetValue<string>("AppSettings: Audiance"),
+                issuer: _configuration.GetValue<string>("AppSettings:Issuer"),
+                audience: _configuration.GetValue<string>("AppSettings: Audiance"),
                 claims: claims,
                 expires: DateTime.Now.AddDays(1),
                 signingCredentials: creds

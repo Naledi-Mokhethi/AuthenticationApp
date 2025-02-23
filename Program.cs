@@ -7,11 +7,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+IConfiguration configuration = builder.Configuration;   
 
-//Injecting Dependencies
-//builder.Services.AddScoped<IAuthService, AuthService>();
+//Add Authentication Sche
 
-builder.Services.AddTransient<IAuthService, AuthService>(provider => new AuthService(connectionString!));
+//Add Auth Service
+builder.Services.AddTransient<IAuthService, AuthService>(provider => new AuthService(connectionString!, configuration));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
