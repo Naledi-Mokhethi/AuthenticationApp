@@ -27,13 +27,23 @@ namespace AuthenticationApp.Services
         {
             var user = new User(); 
 
+            
             var hashedPassword = new PasswordHasher<User>()
               .HashPassword(user, request.EmployeePassword);
 
             var procedureName = "EmployeeRegistration";
+            var passwordProcedureName = "ReturnHashedPassword";
             var parameters = new DynamicParameters();
+            var checkUserProc = new DynamicParameters();
             using (var connection = new SqlConnection(_connectionString))
             {
+                //Stored Procedure returns the password based on the email, meaning if the email is in the database the user exists
+                checkUserProc.Add("@Email", request.EmployeeEmail);
+                var checkUser =  await connection.QueryFirstOrDefaultAsync<string>(passwordProcedureName, checkUserProc, commandType: CommandType.StoredProcedure);
+                if (checkUser is not null)
+                {
+                    return "User already exists"; // intentionall null return, it means that there is a user with that email in the dbo
+                }
                 parameters.Add("@EmployeeName", request.EmployeeName);
                 parameters.Add("@EmployeeLastName", request.EmployeeLastName);
                 parameters.Add("@EmployeeDepartment", request.EmployeeDepartment);
@@ -56,9 +66,7 @@ namespace AuthenticationApp.Services
             var passordParameters = new DynamicParameters();
 
             using (var connection = new SqlConnection(_connectionString))
-            {
-                //connection.Open();
-
+            { 
                 //Password Stored Procedure 
                 passordParameters.Add("@Email", request.EmployeeEmail);
                 var hashedPassword = await connection.QueryFirstOrDefaultAsync<string>(passwordProcedureName, passordParameters, commandType: CommandType.StoredProcedure);

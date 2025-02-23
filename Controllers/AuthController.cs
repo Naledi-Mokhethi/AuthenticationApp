@@ -19,9 +19,12 @@ namespace AuthenticationApp.Controllers
         [HttpPost("Register")]
         public async Task<ActionResult<User>> Register(UserDto request)
         {
-           if(await authService.RegisterAsync(request) is null)
-                return BadRequest("");
-           else
+           var registrationUser = await authService.RegisterAsync(request);
+            if (registrationUser is null)
+                return BadRequest("Registration unsuccessful");
+            else if (registrationUser == "User already exists")
+                return BadRequest("User Already Exists");
+            else
                 return Ok();
         }
         [HttpPost("Login")]
