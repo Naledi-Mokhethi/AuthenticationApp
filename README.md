@@ -9,7 +9,8 @@
 - It is built on .NET 8 using visual studio.
 - The structure incorporates Data Transfer objects to protect the model/entity data.
 - The database communication is established using dapper and stored procedures.
-- After a login has been successfully established we use Json Web Tokens for the client to enhance security 
+- After a login has been successfully established we use Json Web Tokens for the client to enhance security.
+- The Json web token is valid for 24 hours.
 
 ## Developers Guide
 - You need visual studio or visual studio code as an editor
