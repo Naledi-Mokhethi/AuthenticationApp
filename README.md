@@ -12,6 +12,8 @@
 - After a login has been successfully established we use Json Web Tokens for the client to enhance security.
 - The Json web token is valid for 24 hours.
 
+##In Progress 
+
 ## Developers Guide
 - You need visual studio or visual studio code as an editor
 - You need SQL Server or SQL Express
